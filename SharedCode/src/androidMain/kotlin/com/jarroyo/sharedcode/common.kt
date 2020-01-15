@@ -1,6 +1,6 @@
 package com.jarroyo.sharedcode
 
 
-actual fun platformName(): String {
+fun platformName(): String {
     return "Android"
 }
