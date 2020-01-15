@@ -6,11 +6,11 @@ import kotlin.native.concurrent.ThreadLocal
 @ThreadLocal
 object InjectorCommon {
 
-    lateinit var mContextArgs: ContextArgs
+    lateinit var contextArgs: ContextArgs
 
     fun provideContextArgs(contextArgs: ContextArgs): ContextArgs {
-        mContextArgs = contextArgs
-        return mContextArgs
+        this.contextArgs = contextArgs
+        return contextArgs
     }
 
 

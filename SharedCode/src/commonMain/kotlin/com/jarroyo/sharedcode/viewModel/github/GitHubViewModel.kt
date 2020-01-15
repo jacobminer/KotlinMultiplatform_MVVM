@@ -20,10 +20,10 @@ import kotlin.coroutines.CoroutineContext
 class GitHubViewModel : ViewModel() {
 
     // LIVE DATA
-    var mGetGitHubRepoListLiveData = MutableLiveData<GetGitHubRepoListState>(LoadingGetGitHubRepoListState())
+    var getGitHubRepoListLiveData = MutableLiveData<GetGitHubRepoListState?>(null)
 
     // USE CASE
-    private val mGetGitHubRepoListUseCase by KodeinInjector.instance<GetGitHubRepoListUseCase>()
+    private val getGitHubRepoListUseCase by KodeinInjector.instance<GetGitHubRepoListUseCase>()
 
     // ASYNC - COROUTINES
     private val coroutineContext by KodeinInjector.instance<CoroutineContext>()
@@ -35,10 +35,10 @@ class GitHubViewModel : ViewModel() {
      * GET GITHUB REPO LIST
      */
     fun getGitHubRepoList(username: String) = launchSilent(coroutineContext, exceptionHandler, job) {
-        mGetGitHubRepoListLiveData.postValue(LoadingGetGitHubRepoListState())
+        getGitHubRepoListLiveData.postValue(LoadingGetGitHubRepoListState())
 
         val request = GetGitHubRepoListRequest(username)
-        val response = mGetGitHubRepoListUseCase.execute(request)
+        val response = getGitHubRepoListUseCase.execute(request)
         processGitHubRepoListResponse(response)
     }
 
@@ -47,13 +47,13 @@ class GitHubViewModel : ViewModel() {
      */
     fun processGitHubRepoListResponse(response: Response<List<GitHubRepo>>){
         if (response is Response.Success) {
-            mGetGitHubRepoListLiveData.postValue(
+            getGitHubRepoListLiveData.postValue(
                 SuccessGetGitHubRepoListState(
                     response
                 )
             )
         } else if (response is Response.Error) {
-            mGetGitHubRepoListLiveData.postValue(
+            getGitHubRepoListLiveData.postValue(
                 ErrorGetGitHubRepoListState(
                     response
                 )

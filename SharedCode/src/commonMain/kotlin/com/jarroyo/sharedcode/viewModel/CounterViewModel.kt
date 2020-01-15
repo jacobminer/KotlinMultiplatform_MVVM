@@ -18,7 +18,7 @@ import kotlin.coroutines.CoroutineContext
 
 class CounterViewModel(
 ) : ViewModel() {
-    var mGetCounterLiveData = MutableLiveData<GetCounterState>(LoadingGetCounterState())
+    var getCounterLiveData = MutableLiveData<GetCounterState?>(null)
 
     private val mGetCounterUseCase by KodeinInjector.instance<GetCounterUseCase>()
     private val coroutineContext by KodeinInjector.instance<CoroutineContext>()
@@ -31,7 +31,7 @@ class CounterViewModel(
      * GET COUNTER
      */
     fun getCounter() = launchSilent(coroutineContext, exceptionHandler, job) {
-        mGetCounterLiveData.postValue(LoadingGetCounterState())
+        getCounterLiveData.postValue(LoadingGetCounterState())
 
         //Logger.d("COUNTER VIEWMODEL", "my message")
         val request = GetCounterRequest()
@@ -41,13 +41,13 @@ class CounterViewModel(
 
     fun processSaveUserResponse(response: Response<Int>){
         if (response is Response.Success) {
-            mGetCounterLiveData.postValue(
+            getCounterLiveData.postValue(
                 SuccessGetCounterState(
                     response
                 )
             )
         } else if (response is Response.Error) {
-            mGetCounterLiveData.postValue(
+            getCounterLiveData.postValue(
                 SuccessGetCounterState(
                     response
                 )

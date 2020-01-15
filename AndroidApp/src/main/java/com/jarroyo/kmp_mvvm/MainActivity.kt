@@ -1,149 +1,146 @@
 package com.jarroyo.kmp_mvvm
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.Composable
+import androidx.compose.unaryPlus
 import androidx.lifecycle.ViewModelProviders
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.jarroyo.kmp_mvvm.ui.main.adapter.GitHubRepoRVAdapter
+import androidx.ui.core.Text
+import androidx.ui.core.dp
+import androidx.ui.core.setContent
+import androidx.ui.foundation.VerticalScroller
+import androidx.ui.layout.Column
+import androidx.ui.layout.ExpandedWidth
+import androidx.ui.layout.Row
+import androidx.ui.layout.Spacing
+import androidx.ui.material.Button
+import androidx.ui.material.surface.Surface
+import androidx.ui.text.ParagraphStyle
+import androidx.ui.text.style.TextAlign
+import androidx.ui.tooling.preview.Preview
 import com.jarroyo.sharedcode.base.Response
 import com.jarroyo.sharedcode.domain.model.github.GitHubRepo
-import com.jarroyo.sharedcode.platformName
 import com.jarroyo.sharedcode.viewModel.*
 import com.jarroyo.sharedcode.viewModel.github.*
-import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
     // View Model
-    lateinit var mCounterViewModel: CounterViewModel
-    lateinit var mGitHubViewModel: GitHubViewModel
-
-    // RV Adapter
-    private var mLayoutManager: LinearLayoutManager? = null
-    private var mRvAdapter: GitHubRepoRVAdapter? = null
+    private lateinit var counterViewModel: CounterViewModel
+    private lateinit var gitHubViewModel: GitHubViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        configView()
-        initViewModel()
-    }
+        counterViewModel = ViewModelProviders.of(this).get(CounterViewModel::class.java)
+        gitHubViewModel = ViewModelProviders.of(this).get(GitHubViewModel::class.java)
 
-    private fun configView() {
-        val platformName = platformName()
-        activity_main_tv.text = platformName
-
-
-        activity_main_button.setOnClickListener {
-            mCounterViewModel.getCounter()
-            mGitHubViewModel.getGitHubRepoList("jarroyoesp")
+        setContent {
+            Theme.withTheme {
+                Items()
+            }
         }
     }
 
-    private fun initViewModel() {
-        mCounterViewModel = ViewModelProviders.of(this).get(CounterViewModel::class.java)
-        mGitHubViewModel = ViewModelProviders.of(this).get(GitHubViewModel::class.java)
-        observeViewModel()
+    @Composable
+    fun Items() {
+        val counterState= +observe<GetCounterState?>(counterViewModel.getCounterLiveData)
+        val itemsState = +observe<GetGitHubRepoListState?>(gitHubViewModel.getGitHubRepoListLiveData)
+
+        Surface {
+            when {
+                counterState == null || itemsState == null -> {
+                    InitialState()
+                }
+                counterState is LoadingGetCounterState || itemsState is LoadingGetGitHubRepoListState -> {
+                    LoadingState()
+                }
+                counterState is ErrorGetCounterState || itemsState is ErrorGetGitHubRepoListState -> {
+                    val counterResponse = counterState.response as Response.Error
+                    val itemsResponse = itemsState.response as Response.Error
+                    ErrorState(counterResponse.message ?: itemsResponse.message)
+                }
+                counterState is SuccessGetCounterState && itemsState is SuccessGetGitHubRepoListState -> {
+                    val counterResponse = counterState.response as Response.Success<Int>
+                    val itemsResponse = itemsState.response as Response.Success<List<GitHubRepo>>
+                    ListState(counterResponse.data, itemsResponse.data)
+                }
+                else -> {
+                    Column {
+                        Text(text = "Help")
+                    }
+                }
+            }
+        }
     }
 
-    private fun configRecyclerView(treatmentList: List<GitHubRepo>) {
-        if (activity_main_rv.adapter == null) {
-            mLayoutManager = LinearLayoutManager(
-                this,
-                LinearLayoutManager.VERTICAL, false
+    @Composable
+    fun InitialState() {
+        Column(modifier = Spacing(8.dp)) {
+            Button(text = "Load Data", onClick = {
+                counterViewModel.getCounter()
+                gitHubViewModel.getGitHubRepoList("jarroyoesp")
+            }, modifier = Spacing(bottom = 16.dp).wraps(ExpandedWidth))
+        }
+    }
+
+    @Composable
+    fun LoadingState() {
+        Column {
+            Text(text = "Loading data...",
+                modifier = Spacing(15.dp).wraps(ExpandedWidth),
+                paragraphStyle = ParagraphStyle(textAlign = TextAlign.Center))
+        }
+    }
+
+    @Composable
+    fun ListState(value: Int, list: List<GitHubRepo>) {
+        VerticalScroller(modifier = Spacing(8.dp)) {
+            Column {
+                Text(text = "Loaded $value repos",
+                    modifier = Spacing(left = 5.dp, right = 5.dp, top = 5.dp, bottom = 25.dp).wraps(ExpandedWidth))
+
+                list.forEach {
+                    Item(it)
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun ErrorState(message: String?) {
+        Column {
+            Text(
+                text = message ?: "Unknown Error",
+                modifier = Spacing(5.dp).wraps(ExpandedWidth)
             )
-            activity_main_rv.layoutManager = mLayoutManager
-
-            mRvAdapter = GitHubRepoRVAdapter(treatmentList)
-
-            activity_main_rv.adapter = mRvAdapter
-
-        } else {
-            mRvAdapter?.setList(treatmentList)
-            mRvAdapter?.notifyDataSetChanged()
         }
     }
 
-    /****************************************************************************
-     * OBSERVER
-     ***************************************************************************/
-    private fun observeViewModel() {
-        mCounterViewModel.mGetCounterLiveData.addObserver { getCurrentCounterState(it)}
-        mGitHubViewModel.mGetGitHubRepoListLiveData.addObserver { getGitHubListState(it)}
-    }
-
-    fun getCurrentCounterState(state: GetCounterState) {
-        when (state) {
-            is SuccessGetCounterState -> {
-                hideLoading()
-                val response =  state.response as Response.Success
-                onSuccess(value = response.data)
-            }
-
-            is LoadingGetCounterState -> {
-                showLoading()
-            }
-
-            is ErrorGetCounterState -> {
-                hideLoading()
-                val response =  state as Response.Error
-                showError(response.message)
-            }
+    @Composable
+    fun Item(item: GitHubRepo) {
+        Row {
+            Text(text = item.name, modifier = Spacing(10.dp).wraps(ExpandedWidth))
         }
     }
 
-    fun getGitHubListState(state: GetGitHubRepoListState) {
-        when (state) {
-            is SuccessGetGitHubRepoListState -> {
-                hideLoading()
-                val response =  state.response as Response.Success
-                onSuccessGetGitHubList(response.data)
-            }
-
-            is LoadingGetGitHubRepoListState -> {
-                showLoading()
-            }
-
-            is ErrorGetGitHubRepoListState -> {
-                hideLoading()
-                val response =  state.response as Response.Error
-                showError(response.message)
-            }
+    @Preview
+    @Composable
+    fun LightPreview() {
+        Theme.withLightTheme {
+            counterViewModel = CounterViewModel()
+            gitHubViewModel = GitHubViewModel()
+            Items()
         }
     }
 
-    /**
-     * ON SUCCESS
-     */
-    private fun onSuccess(value: Int) {
-
-        activity_main_tv.text = "Counter = $value"
+    @Preview
+    @Composable
+    fun DarkPreview() {
+        Theme.withDarkTheme {
+            counterViewModel = CounterViewModel()
+            gitHubViewModel = GitHubViewModel()
+            Items()
+        }
     }
-
-    private fun onSuccessGetGitHubList(list: List<GitHubRepo>) {
-        configRecyclerView(list)
-    }
-
-    /**
-     * SHOW LOADING
-     */
-    private fun showLoading() {
-        Toast.makeText(this, "Loading...", Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * HIDE LOADING
-     */
-    private fun hideLoading() {
-    }
-
-    /**
-     * SHOW ERROR
-     */
-    private fun showError(message: String?) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-
 }
