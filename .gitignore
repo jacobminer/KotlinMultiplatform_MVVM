@@ -11,6 +11,7 @@
 /.idea/**
 /SharedCode/src/androidMain/gen/**
 /AndroidApp/src/main/gen/**
+/AndroidApp/.idea/**
 /out/**
 .DS_Store
 /build
