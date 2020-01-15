@@ -126,7 +126,7 @@ task packForXCode {
 
     doLast {
         def srcFile = kotlin.targets.ios.binaries.getFramework(buildType).outputFile
-        def targetDir = getProperty("configuration.build.dir")
+        def targetDir = "./build/xcode-frameworks"//getProperty("configuration.build.dir")
         copy {
             from srcFile.parent
             into targetDir

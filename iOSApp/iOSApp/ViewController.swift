@@ -45,7 +45,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
      * OBSERVER VIEW MODEL
      ***************************************************************************/
     func observeCounterViewModel() {
-        mCounterViewModel.mGetCounterLiveData.addObserver { (mCurrentState) in
+        mCounterViewModel.getCounterLiveData.addObserver { (mCurrentState) in
             if (mCurrentState is SuccessGetCounterState) {
                 let successState = mCurrentState as! SuccessGetCounterState
                 let response = (successState.response as! Response.Success)
@@ -62,7 +62,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     func observeGitHubViewModel() {
-        mGitHubViewModel.mGetGitHubRepoListLiveData.addObserver { (mCurrentState) in
+        mGitHubViewModel.getGitHubRepoListLiveData.addObserver { (mCurrentState) in
             if (mCurrentState is SuccessGetGitHubRepoListState) {
                 let successState = mCurrentState as! SuccessGetGitHubRepoListState
                 let response = (successState.response as! Response.Success)
