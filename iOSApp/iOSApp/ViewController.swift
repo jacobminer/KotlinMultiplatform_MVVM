@@ -24,7 +24,9 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     override func viewDidLoad() {
         super.viewDidLoad()
         configView()
-        initViewModel()
+
+        mCounterViewModel = CounterViewModel()
+        mGitHubViewModel = GitHubViewModel()
     }
     
     func configView() {
@@ -32,54 +34,37 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
         mTableView.dataSource = self
         mTableView.delegate = self
-    }
-    
-    func initViewModel() {
-        mCounterViewModel = CounterViewModel()
-        mGitHubViewModel = GitHubViewModel()
-        observeCounterViewModel()
-        observeGitHubViewModel()
-    }
-    
-    /****************************************************************************
-     * OBSERVER VIEW MODEL
-     ***************************************************************************/
-    func observeCounterViewModel() {
+
         mCounterViewModel.getCounterLiveData.addObserver { (mCurrentState) in
             if (mCurrentState is SuccessGetCounterState) {
                 let successState = mCurrentState as! SuccessGetCounterState
                 let response = (successState.response as! Response.Success)
                 let value = response.data as! Int
                 self.mCounterLabel.text = String(value)
-                
+
             } else if (mCurrentState is LoadingGetCounterState) {
                 self.mCounterLabel.text = "Loading"
             } else if (mCurrentState is ErrorGetCounterState) {
                 self.mCounterLabel.text = "ERROR"
             }
-        
+
         }
-    }
-    
-    func observeGitHubViewModel() {
+
         mGitHubViewModel.getGitHubRepoListLiveData.addObserver { (mCurrentState) in
             if (mCurrentState is SuccessGetGitHubRepoListState) {
                 let successState = mCurrentState as! SuccessGetGitHubRepoListState
                 let response = (successState.response as! Response.Success)
                 let value = response.data as! [GitHubRepo]
-                self.onSuccessGetGitHubRepoList(list: value)
-                
+
+                self.update(list: value)
+
             } else if (mCurrentState is LoadingGetGitHubRepoListState) {
                 self.mCounterLabel.text = "Loading"
             } else if (mCurrentState is ErrorGetGitHubRepoListState) {
                 self.mCounterLabel.text = "ERROR"
             }
-            
+
         }
-    }
-    
-    func onSuccessGetGitHubRepoList(list: [GitHubRepo]) {
-        update(list: list)
     }
     
     /****************************************************************************
@@ -114,7 +99,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let entryNum = mGitHubRepoList[indexPath.row].name
     }
-    
     
     deinit {
         mCounterViewModel.onCleared()
