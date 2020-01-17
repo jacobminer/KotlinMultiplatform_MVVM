@@ -20,19 +20,14 @@ import androidx.ui.text.style.TextAlign
 import androidx.ui.tooling.preview.Preview
 import com.jarroyo.sharedcode.base.Response
 import com.jarroyo.sharedcode.domain.model.github.GitHubRepo
-import com.jarroyo.sharedcode.viewModel.*
 import com.jarroyo.sharedcode.viewModel.github.*
 
 class MainActivity : AppCompatActivity() {
-
-    // View Model
-    private lateinit var counterViewModel: CounterViewModel
     private lateinit var gitHubViewModel: GitHubViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        counterViewModel = ViewModelProviders.of(this).get(CounterViewModel::class.java)
         gitHubViewModel = ViewModelProviders.of(this).get(GitHubViewModel::class.java)
 
         setContent {
@@ -44,26 +39,23 @@ class MainActivity : AppCompatActivity() {
 
     @Composable
     fun Items() {
-        val counterState= +observe<GetCounterState?>(counterViewModel.getCounterLiveData)
         val itemsState = +observe<GetGitHubRepoListState?>(gitHubViewModel.getGitHubRepoListLiveData)
 
         Surface {
-            when {
-                counterState == null || itemsState == null -> {
+            when (itemsState) {
+                null -> {
                     InitialState()
                 }
-                counterState is LoadingGetCounterState || itemsState is LoadingGetGitHubRepoListState -> {
+                is LoadingGetGitHubRepoListState -> {
                     LoadingState()
                 }
-                counterState is ErrorGetCounterState || itemsState is ErrorGetGitHubRepoListState -> {
-                    val counterResponse = counterState.response as? Response.Error
+                is ErrorGetGitHubRepoListState -> {
                     val itemsResponse = itemsState.response as? Response.Error
-                    ErrorState(counterResponse?.message ?: itemsResponse?.message)
+                    ErrorState(itemsResponse?.message)
                 }
-                counterState is SuccessGetCounterState && itemsState is SuccessGetGitHubRepoListState -> {
-                    val counterResponse = counterState.response as Response.Success<Int>
+                is SuccessGetGitHubRepoListState -> {
                     val itemsResponse = itemsState.response as Response.Success<List<GitHubRepo>>
-                    ListState(counterResponse.data, itemsResponse.data)
+                    ListState(itemsResponse.data)
                 }
                 else -> {
                     Column {
@@ -78,7 +70,6 @@ class MainActivity : AppCompatActivity() {
     fun InitialState() {
         Column(modifier = Spacing(8.dp)) {
             Button(text = "Load Data", onClick = {
-                counterViewModel.getCounter()
                 gitHubViewModel.getGitHubRepoList("jarroyoesp")
             }, modifier = Spacing(bottom = 16.dp).wraps(ExpandedWidth))
         }
@@ -94,12 +85,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     @Composable
-    fun ListState(value: Int, list: List<GitHubRepo>) {
+    fun ListState(list: List<GitHubRepo>) {
         VerticalScroller(modifier = Spacing(8.dp)) {
             Column {
-                Text(text = "Loaded $value repos",
-                    modifier = Spacing(left = 5.dp, right = 5.dp, top = 5.dp, bottom = 25.dp).wraps(ExpandedWidth))
-
                 list.forEach {
                     Item(it)
                 }
@@ -128,7 +116,6 @@ class MainActivity : AppCompatActivity() {
     @Composable
     fun LightPreview() {
         Theme.withLightTheme {
-            counterViewModel = CounterViewModel()
             gitHubViewModel = GitHubViewModel()
             Items()
         }
@@ -138,7 +125,6 @@ class MainActivity : AppCompatActivity() {
     @Composable
     fun DarkPreview() {
         Theme.withDarkTheme {
-            counterViewModel = CounterViewModel()
             gitHubViewModel = GitHubViewModel()
             Items()
         }
