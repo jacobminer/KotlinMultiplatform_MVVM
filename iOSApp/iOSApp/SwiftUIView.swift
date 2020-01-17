@@ -74,8 +74,8 @@ struct SwiftUIView: View {
 
     func listState(value: Int, list: [GitHubRepo]) -> some View {
         return ScrollView(.vertical, showsIndicators: false) {
-            VStack {
-                Text("Loaded \(value) repos")
+            VStack(alignment: .leading) {
+                Text("Loaded \(value) repos").padding(EdgeInsets(top: 5, leading: 0, bottom: 15, trailing: 0))
                 ForEach(list, id: \.self) { item in
                     self.itemView(for: item)
                 }
@@ -88,7 +88,7 @@ struct SwiftUIView: View {
     }
 
     func itemView(for item: GitHubRepo) -> some View {
-        return Text(item.name)
+        return Text(item.name).multilineTextAlignment(.leading).padding(EdgeInsets(top: 5, leading: 0, bottom: 5, trailing: 0))
     }
 }
 

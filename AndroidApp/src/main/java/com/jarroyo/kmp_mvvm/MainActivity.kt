@@ -56,9 +56,9 @@ class MainActivity : AppCompatActivity() {
                     LoadingState()
                 }
                 counterState is ErrorGetCounterState || itemsState is ErrorGetGitHubRepoListState -> {
-                    val counterResponse = counterState.response as Response.Error
-                    val itemsResponse = itemsState.response as Response.Error
-                    ErrorState(counterResponse.message ?: itemsResponse.message)
+                    val counterResponse = counterState.response as? Response.Error
+                    val itemsResponse = itemsState.response as? Response.Error
+                    ErrorState(counterResponse?.message ?: itemsResponse?.message)
                 }
                 counterState is SuccessGetCounterState && itemsState is SuccessGetGitHubRepoListState -> {
                     val counterResponse = counterState.response as Response.Success<Int>
