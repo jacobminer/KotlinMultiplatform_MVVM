@@ -1,12 +1,6 @@
 package com.jarroyo.kmp_mvvm.ui
 
-import androidx.multidex.MultiDexApplication
-import com.jarroyo.sharedcode.di.InjectorCommon
-import com.jarroyo.sharedcode.utils.networkSystem.ContextArgs
+import com.jarroyo.sharedcode.App
 
-open class App : MultiDexApplication() {
-    override fun onCreate() {
-        super.onCreate()
-        InjectorCommon.provideContextArgs(ContextArgs(this))
-    }
+open class App : App() {
 }
