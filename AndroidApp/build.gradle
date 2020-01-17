@@ -46,24 +46,11 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-
-    // SHARED CODE
     implementation project(':SharedCode')
 
-    // ARCHITECTURE COMPONENTS
     implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.1.0'
-
     implementation("dev.icerock.moko:mvvm:0.4.0")
-
-    // MULTI DEX
-    implementation 'androidx.multidex:multidex:2.0.1'
-    androidTestImplementation('androidx.multidex:multidex-instrumentation:2.0.0') {
-        exclude group: 'com.android.support', module: 'multidex'
-    }
-
-    // RECYCLER VIEW
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
 
     // jetpack compose
     implementation 'androidx.ui:ui-tooling:0.1.0-dev03'
