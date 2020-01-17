@@ -3,7 +3,6 @@ import SwiftUI
 import SharedCode
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-    private var counterViewModel = CounterViewModel()
     private var gitHubViewModel = GitHubViewModel()
 
     var window: UIWindow?
@@ -16,7 +15,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use a UIHostingController as window root view controller
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
-            window.rootViewController = UIHostingController(rootView: SwiftUIView(counterViewModel: counterViewModel, gitHubViewModel: gitHubViewModel))
+            window.rootViewController = UIHostingController(rootView: SwiftUIView(gitHubViewModel: gitHubViewModel))
             self.window = window
             window.makeKeyAndVisible()
         }
