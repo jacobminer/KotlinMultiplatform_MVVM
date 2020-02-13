@@ -21,7 +21,7 @@ class GitHubApi {
                 val url = "https://api.github.com/users/${username}/repos"
                 val json = httpClient.get<String> {
                     url(url)
-                    headers.append("Authorization", "token ee0b2ba296ead2b19e5e6e99ecce5d74016299f3")
+                    headers.append("Authorization", "token <token here>")
                 }
                 val response = Json.nonstrict.parse(GitHubRepo.serializer().list, json)
                 Response.Success(response)
