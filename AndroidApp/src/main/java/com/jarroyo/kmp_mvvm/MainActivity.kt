@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 is ErrorGetGitHubRepoListState -> {
                     val itemsResponse = itemsState.response as? Response.Error
-                    ErrorState(itemsResponse?.message)
+                    ErrorState(itemsResponse?.exception?.message)
                 }
                 is SuccessGetGitHubRepoListState -> {
                     val itemsResponse = itemsState.response as Response.Success<List<GitHubRepo>>

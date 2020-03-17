@@ -37,7 +37,7 @@ struct SwiftUIView: View {
             } else if itemsState is LoadingGetGitHubRepoListState {
                 loadingState()
             } else if itemsState is ErrorGetGitHubRepoListState {
-                errorState(message: itemsErrorResponse?.message)
+                errorState(message: itemsErrorResponse?.exception.message)
             } else if itemsState is SuccessGetGitHubRepoListState {
                 listState(list: itemsResponse ?? [])
             } else {
