@@ -8,6 +8,7 @@ import com.jarroyo.kotlinmultiplatform.source.network.GitHubApi
 import com.jarroyo.sharedcode.base.Response
 import com.jarroyo.sharedcode.di.KodeinInjector
 import com.jarroyo.sharedcode.domain.model.github.GitHubRepo
+import com.jarroyo.sharedcode.domain.model.github.GithubIssues
 import com.jarroyo.sharedcode.utils.coroutines.launchSilent
 import dev.icerock.moko.mvvm.livedata.MutableLiveData
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
@@ -16,30 +17,51 @@ import kotlinx.coroutines.Job
 import org.kodein.di.erased.instance
 import kotlin.coroutines.CoroutineContext
 
-sealed class GetGitHubRepoListState {
-    abstract val response: Response<List<GitHubRepo>>?
+sealed class NetworkingState<T> {
+    abstract val response: Response<T>?
+
+    data class NetworkSuccess<T>(override val response: Response<T>): NetworkingState<T>()
+    data class NetworkLoading<T>(override val response: Response<T>? = null): NetworkingState<T>()
+    data class NetworkError<T>(override val response: Response<T>) : NetworkingState<T>()
 }
-data class SuccessGetGitHubRepoListState(override val response: Response<List<GitHubRepo>>) : GetGitHubRepoListState()
-data class LoadingGetGitHubRepoListState(override val response: Response<List<GitHubRepo>>? = null) : GetGitHubRepoListState()
-data class ErrorGetGitHubRepoListState(override val response: Response<List<GitHubRepo>>) : GetGitHubRepoListState()
 
 class GitHubViewModel : ViewModel() {
-    private val gitGubApi: GitHubApi by KodeinInjector.instance()
+    private val gitHubApi: GitHubApi by KodeinInjector.instance()
 
-    var getGitHubRepoListLiveData = MutableLiveData<GetGitHubRepoListState?>(null)
+    var getGitHubRepoListLiveData = MutableLiveData<NetworkingState<List<GitHubRepo>>?>(null)
+    var issuesList = MutableLiveData<NetworkingState<GithubIssues>?>(null)
 
     // ASYNC - COROUTINES
     private val coroutineContext by KodeinInjector.instance<CoroutineContext>()
     private var job: Job = Job()
     private val exceptionHandler = CoroutineExceptionHandler { _, _ -> }
 
-    fun getGitHubRepoList(username: String) = launchSilent(coroutineContext, exceptionHandler, job) {
-        getGitHubRepoListLiveData.postValue(LoadingGetGitHubRepoListState())
-        val response = gitGubApi.getGitHubRepoList(username)
-        if (response is Response.Success) {
-            getGitHubRepoListLiveData.postValue(SuccessGetGitHubRepoListState(response))
-        } else if (response is Response.Error) {
-            getGitHubRepoListLiveData.postValue(ErrorGetGitHubRepoListState(response))
+    fun <T> trackingState(liveData: MutableLiveData<NetworkingState<T>?>, networking: suspend () -> Response<T>) = launchSilent(coroutineContext, exceptionHandler, job) {
+        liveData.postValue(NetworkingState.NetworkLoading())
+        val response = networking()
+        when (response) {
+            is Response.Success -> {
+                liveData.postValue(NetworkingState.NetworkSuccess(response))
+            }
+            else -> {
+                liveData.postValue(NetworkingState.NetworkError(response))
+            }
         }
     }
+
+
+    fun getGitHubRepoList(username: String) = launchSilent(coroutineContext, exceptionHandler, job) {
+        trackingState(getGitHubRepoListLiveData) { gitHubApi.getGitHubRepoList(username) }
+    }
+
+    fun getIssuesList() = launchSilent(coroutineContext, exceptionHandler, job) {
+        trackingState(issuesList) { gitHubApi.getIssuesList() }
+    }
+
+    fun setAuthToken(text: String) {
+        gitHubApi.setToken(text)
+    }
+
+    val hasAuthToken: Boolean
+        get() = gitHubApi.hasAuthToken
 }

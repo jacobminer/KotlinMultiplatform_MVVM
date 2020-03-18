@@ -17,6 +17,9 @@ class GitHubApi {
     private val httpClient = HttpClient()
     private var authToken: String = ""
 
+    val hasAuthToken: Boolean
+        get() = !authToken.isBlank()
+
     fun setToken(token: String) {
         authToken = token
     }
