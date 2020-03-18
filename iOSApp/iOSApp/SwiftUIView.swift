@@ -17,7 +17,6 @@ struct SwiftUIView: View {
 
     init(gitHubViewModel: GitHubViewModel) {
         self.gitHubViewModel = gitHubViewModel
-//        gitHubViewModel.setAuthToken(text: "")
         self.listLiveData = gitHubViewModel.getGitHubRepoListLiveData
         self.listLiveData.makeObservableForSwiftUI()
     }
@@ -49,7 +48,7 @@ struct SwiftUIView: View {
 
     func initialState() -> some View {
         return Button(action: {
-            self.gitHubViewModel.getGitHubRepoList(username: "jarroyoesp")
+            self.gitHubViewModel.getGitHubRepoList(username: "jacobminer")
         }) {
             Text("Load Data")
         }

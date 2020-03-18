@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
             gitHubViewModel.setAuthToken(editText.text.toString())
             editText.isGone = true
             gitHubViewModel.getIssuesList()
+            gitHubViewModel.getGitHubRepoList("jacobminer")
         }
     }
 }
