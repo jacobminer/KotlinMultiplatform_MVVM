@@ -5,12 +5,13 @@ import com.jarroyo.sharedcode.base.Response
 import com.jarroyo.sharedcode.base.exception.NetworkConnectionException
 import com.jarroyo.sharedcode.base.exception.NotAuthenticatedException
 import com.jarroyo.sharedcode.domain.model.github.GitHubRepo
-import com.jarroyo.sharedcode.domain.model.github.GithubIssues
+import com.jarroyo.sharedcode.domain.model.github.GithubIssue
 import com.jarroyo.sharedcode.utils.networkSystem.isNetworkAvailable
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.url
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.list
 import kotlinx.serialization.json.Json
 
 class GitHubApi {
@@ -24,27 +25,8 @@ class GitHubApi {
         authToken = token
     }
 
-    @UseExperimental(ImplicitReflectionSerializer::class)
-    private suspend inline fun <reified T: Any> get(endpoint: String): Response<T> {
-        if (!isNetworkAvailable()) {
-            return Response.Error(NetworkConnectionException())
-        }
-
-        return try {
-            val url = "https://api.github.com/$endpoint"
-            val json = httpClient.get<String> {
-                url(url)
-                headers.append("Authorization", "token $authToken")
-            }
-            val response = Json.nonstrict.parse(T::class.serializer(), json)
-            Response.Success(response)
-        } catch (e: Exception) {
-            Response.Error(e)
-        }
-    }
-
-    @UseExperimental(ImplicitReflectionSerializer::class)
-    private suspend inline fun <reified T: Any> getList(endpoint: String): Response<List<T>> {
+    @OptIn(ImplicitReflectionSerializer::class)
+    private suspend inline fun <reified T: Any> get(endpoint: String, serializer: KSerializer<T> = T::class.serializer()): Response<T> {
         if (!isNetworkAvailable()) {
             return Response.Error(NetworkConnectionException())
         }
@@ -57,20 +39,25 @@ class GitHubApi {
             val url = "https://api.github.com/$endpoint"
             val json = httpClient.get<String> {
                 url(url)
-                headers.append("Authorization", "token ")
+                headers.append("Authorization", "token $authToken")
             }
-            val response = Json.nonstrict.parse(T::class.serializer().list, json)
+            val response = Json.nonstrict.parse(serializer, json)
             Response.Success(response)
         } catch (e: Exception) {
             Response.Error(e)
         }
     }
 
+    @OptIn(ImplicitReflectionSerializer::class)
+    private suspend inline fun <reified T: Any> getList(endpoint: String): Response<List<T>> {
+        return get(endpoint, T::class.serializer().list)
+    }
+
     suspend fun getGitHubRepoList(username: String): Response<List<GitHubRepo>> {
         return getList("users/${username}/repos")
     }
 
-    suspend fun getIssuesList(): Response<GithubIssues> {
-        return get("issues")
+    suspend fun getIssuesList(): Response<List<GithubIssue>> {
+        return getList("issues")
     }
 }

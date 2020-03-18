@@ -4,10 +4,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GithubIssues(
-    @SerialName("active_lock_session") val active_lock_reason: String,
+data class GithubIssue(
+    val active_lock_reason: String,
     val assignee: Assignee,
-    val assignees: List<AssigneeX>,
     val body: String,
     val comments: Int,
     val comments_url: String,

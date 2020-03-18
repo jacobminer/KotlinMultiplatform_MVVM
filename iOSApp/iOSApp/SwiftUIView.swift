@@ -17,6 +17,7 @@ struct SwiftUIView: View {
 
     init(gitHubViewModel: GitHubViewModel) {
         self.gitHubViewModel = gitHubViewModel
+//        gitHubViewModel.setAuthToken(text: "")
         self.listLiveData = gitHubViewModel.getGitHubRepoListLiveData
         self.listLiveData.makeObservableForSwiftUI()
     }
@@ -27,18 +28,18 @@ struct SwiftUIView: View {
     }
 
     var body: some View {
-        let itemsState = self.listLiveData.value as? GetGitHubRepoListState
+        let itemsState = self.listLiveData.value as? NetworkingState
         let itemsErrorResponse = itemsState?.response as? Response.Error
         let itemsResponse = (itemsState?.response as? Response.Success)?.data as? Array<GitHubRepo>
 
         return VStack {
             if itemsState == nil {
                 initialState()
-            } else if itemsState is LoadingGetGitHubRepoListState {
+            } else if itemsState is NetworkingState.NetworkLoading {
                 loadingState()
-            } else if itemsState is ErrorGetGitHubRepoListState {
+            } else if itemsState is NetworkingState.NetworkError {
                 errorState(message: itemsErrorResponse?.exception.message)
-            } else if itemsState is SuccessGetGitHubRepoListState {
+            } else if itemsState is NetworkingState.NetworkSuccess {
                 listState(list: itemsResponse ?? [])
             } else {
                 errorState(message: "Help")

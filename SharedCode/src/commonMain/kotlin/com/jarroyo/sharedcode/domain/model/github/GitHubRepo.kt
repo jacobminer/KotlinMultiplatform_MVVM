@@ -77,7 +77,6 @@ data class GitHubRepo(
     @Transient
     val license: License? = null
 
-
     @Transient
     val homepage: String? = null
 

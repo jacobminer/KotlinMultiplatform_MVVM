@@ -8,7 +8,7 @@ import com.jarroyo.kotlinmultiplatform.source.network.GitHubApi
 import com.jarroyo.sharedcode.base.Response
 import com.jarroyo.sharedcode.di.KodeinInjector
 import com.jarroyo.sharedcode.domain.model.github.GitHubRepo
-import com.jarroyo.sharedcode.domain.model.github.GithubIssues
+import com.jarroyo.sharedcode.domain.model.github.GithubIssue
 import com.jarroyo.sharedcode.utils.coroutines.launchSilent
 import dev.icerock.moko.mvvm.livedata.MutableLiveData
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
@@ -29,7 +29,7 @@ class GitHubViewModel : ViewModel() {
     private val gitHubApi: GitHubApi by KodeinInjector.instance()
 
     var getGitHubRepoListLiveData = MutableLiveData<NetworkingState<List<GitHubRepo>>?>(null)
-    var issuesList = MutableLiveData<NetworkingState<GithubIssues>?>(null)
+    var issuesList = MutableLiveData<NetworkingState<List<GithubIssue>>?>(null)
 
     // ASYNC - COROUTINES
     private val coroutineContext by KodeinInjector.instance<CoroutineContext>()
